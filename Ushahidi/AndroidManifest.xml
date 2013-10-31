@@ -288,6 +288,14 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        
+        
+        
+        <activity android:name="com.ushahidi.android.app.activities.CategoryActivity"
+            android:label="@string/title_activity_category"
+            >
+
+        </activity>
 
         <!-- New Fragment Activities Ends -->
 

@@ -59,9 +59,13 @@ import android.widget.DatePicker;
 import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.ViewSwitcher;
 
+import com.google.analytics.tracking.android.Log;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.ushahidi.android.app.Preferences;
 import com.ushahidi.android.app.R;
@@ -135,11 +139,11 @@ public class AddReportActivity extends
 
 	private boolean mError = false;
 
-	private int id = 0;
+	private int id = 0, catId = 0;
 
 	private UploadPhotoAdapter pendingPhoto;
 
-	private String mErrorMessage;
+	private String mErrorMessage, catName;
 
 	private String photoName;
 
@@ -156,10 +160,18 @@ public class AddReportActivity extends
 		super.onCreate(savedInstanceState);
 		view.mLatitude.addTextChangedListener(latLonTextWatcher);
 		view.mLongitude.addTextChangedListener(latLonTextWatcher);
-		if (checkForGMap()) {
+		boolean hasGMap = checkForGMap();
+		if (hasGMap) {
 			SupportMapFragment mapFrag = (SupportMapFragment) getSupportFragmentManager()
 					.findFragmentById(R.id.location_map);
 			view.map = mapFrag.getMap();
+
+		}
+		
+		if(view.map == null){
+			Log.e("mapa nulo");
+		} else{
+			Log.e("mapa no nulo");
 		}
 
 		view.mBtnPicture.setOnClickListener(this);
@@ -173,6 +185,11 @@ public class AddReportActivity extends
 		view.mSwitcher.setFactory(this);
 		if (getIntent().getExtras() != null) {
 			this.id = getIntent().getExtras().getInt("id", 0);
+			this.catId = getIntent().getExtras().getInt("catId");
+			this.catName = getIntent().getExtras().getString("catName");
+			TextView tit = (TextView) findViewById(R.id.titulo_categoria);
+			tit.setText(this.catName);
+			mVectorCategories.add(this.catId);
 		}
 		mOgsDao = Database.mOpenGeoSmsDao;
 		// edit existing report
@@ -285,6 +302,10 @@ public class AddReportActivity extends
 
 	}
 
+	public void validarReporte(View v){
+		validateReports();
+	}
+	
 	@Override
 	public void onClick(View button) {
 		if (button.getId() == R.id.btnPicture) {
@@ -337,10 +358,10 @@ public class AddReportActivity extends
 		}
 
 		// Dipo Fix
-		if (mVectorCategories.size() == 0) {
+	/*	if (mVectorCategories.size() == 0) {
 			mErrorMessage += getString(R.string.category) + "\n";
 			required = true;
-		}
+		}*/
 
 		// validate lat long
 		if (TextUtils.isEmpty(view.mLatitude.getText().toString())) {
@@ -496,11 +517,11 @@ public class AddReportActivity extends
 		}
 
 		// set Categories.
-		mVectorCategories.clear();
+		/*mVectorCategories.clear();
 		for (ReportCategory reportCategory : model
 				.fetchReportCategories(reportId, IReportSchema.PENDING)) {
 			mVectorCategories.add(reportCategory.getCategoryId());
-		}
+		}*/
 
 		setSelectedCategories(mVectorCategories);
 

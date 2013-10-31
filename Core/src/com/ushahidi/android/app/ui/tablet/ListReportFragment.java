@@ -25,6 +25,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -35,8 +36,14 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.AdapterView.OnItemClickListener;
 
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
@@ -44,6 +51,7 @@ import com.actionbarsherlock.view.MenuItem;
 import com.ushahidi.android.app.Preferences;
 import com.ushahidi.android.app.R;
 import com.ushahidi.android.app.Settings;
+import com.ushahidi.android.app.activities.CategoryActivity;
 import com.ushahidi.android.app.adapters.BaseListReportAdapter;
 import com.ushahidi.android.app.adapters.CategorySpinnerAdater;
 import com.ushahidi.android.app.adapters.ListFetchedReportAdapter;
@@ -54,6 +62,7 @@ import com.ushahidi.android.app.api.ReportsApi;
 import com.ushahidi.android.app.database.Database;
 import com.ushahidi.android.app.database.IOpenGeoSmsSchema;
 import com.ushahidi.android.app.database.OpenGeoSmsDao;
+import com.ushahidi.android.app.entities.CategoryEntity;
 import com.ushahidi.android.app.entities.PhotoEntity;
 import com.ushahidi.android.app.entities.ReportEntity;
 import com.ushahidi.android.app.fragments.BaseSectionListFragment;
@@ -101,6 +110,15 @@ public class ListReportFragment
     private ListFetchedReportAdapter fetchedReportAdapter;
 
     private ListPendingReportAdapter pendingReportAdapter;
+    
+    public Categoria[] categorias = {
+    		new Categoria("Calle y Aceras", 1, R.drawable.ico_cat_calles_aceras),
+    		new Categoria("Parques y recreación", 2, R.drawable.ico_cat_educacion_parques_recreacion),
+    		new Categoria("Servicios", 3, R.drawable.ico_cat_servicios_publicos),
+    		new Categoria("Luz, Voz, Datos", 8, R.drawable.ico_cat_luz_voz_datos),
+    		new Categoria("Desastres", 7, R.drawable.ico_cat_desastres),
+    		new Categoria("Movilidad", 6, R.drawable.ico_cat_movilidad_transporte)
+    };
 
     public ListReportFragment() {
         super(ListReportView.class, BaseListReportAdapter.class,
@@ -127,6 +145,22 @@ public class ListReportFragment
             mPositionChecked = savedInstanceState.getInt("curChoice", 0);
             mPositionShown = savedInstanceState.getInt("shownChoice", -1);
         }
+        
+        
+        GridView gridview = (GridView)  getView().findViewById(R.id.gridview);
+        
+	    gridview.setAdapter(new ImageAdapter(getActivity()));
+
+	    gridview.setOnItemClickListener(new OnItemClickListener() {
+	        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+	            Intent i = new Intent(getActivity(), AddReportActivity.class);
+	            i.putExtra("catId", Long.valueOf(id).intValue());
+	            i.putExtra("catName", categorias[position].nombre);
+	            startActivityForResult(i, 2);
+	            getActivity().overridePendingTransition(R.anim.home_enter,
+	                    R.anim.home_exit);
+	        }
+	    });
 
     }
 
@@ -730,5 +764,67 @@ public class ListReportFragment
         startActivityForResult(i, 2);
         getActivity().overridePendingTransition(R.anim.home_enter,
                 R.anim.home_exit);
+    }
+    
+	public class ImageAdapter extends BaseAdapter {
+	    private Context mContext;
+	    private List<CategoryEntity> listCategories;
+
+	    public ImageAdapter(Context c) {
+	        mContext = c;
+			ListReportModel mListReportModel = new ListReportModel();
+	        listCategories = mListReportModel.getAllCategories();
+	    }
+
+	    public int getCount() {
+	        return categorias.length;
+	    }
+
+	    public Object getItem(int position) {
+	        return categorias[position];
+	    }
+
+	    public long getItemId(int position) {
+	        return categorias[position].id_servidor;
+	    }
+
+
+	    // create a new ImageView for each item referenced by the Adapter
+	    public View getView(int position, View convertView, ViewGroup parent) {
+	        ImageView imageView;
+	        TextView texto;
+	        LinearLayout row;
+	        if (convertView == null) {  // if it's not recycled, initialize some attributes
+	  	        LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
+		        row = (LinearLayout) inflater.inflate(R.layout.category_grid_item, parent, false);
+	        	
+		        texto = (TextView) row.findViewById(R.id.item_text);
+	            texto.setText(categorias[position].nombre);
+	            
+	            imageView = (ImageView) row.findViewById(R.id.item_image);
+	            imageView.setImageResource(categorias[position].icono);
+	            
+	        } else {
+//	            imageView = (ImageView) convertView;
+	        	row = (LinearLayout) convertView;
+	        }
+
+//	        imageView.setImageResource(mThumbIds[position]);
+	        return row;//imageView;
+	    }
+
+	    
+
+	}
+    private class Categoria {
+    	public String nombre;
+    	public int icono;
+    	public int id_servidor;
+    	
+    	public Categoria(String n, int id, int icon){
+    		this.nombre = n;
+    		this.icono = icon;
+    		this.id_servidor = id;
+    	}
     }
 }

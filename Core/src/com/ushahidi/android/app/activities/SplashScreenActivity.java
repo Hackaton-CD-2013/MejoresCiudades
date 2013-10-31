@@ -170,8 +170,9 @@ public class SplashScreenActivity extends FragmentActivity {
     }
 
     private void goToReports() {
-        Intent launchIntent;
-        launchIntent = new Intent(this, ReportTabActivity.class);
+       Intent launchIntent;
+      launchIntent = new Intent(this, ReportTabActivity.class);
+//        launchIntent = new Intent(this, CategoryActivity.class);
         startActivityForResult(launchIntent, 0);
         overridePendingTransition(R.anim.home_enter, R.anim.home_exit);
         setResult(RESULT_OK);
